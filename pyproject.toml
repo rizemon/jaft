@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "jaft"
+version = "0.0.1"
+description = "Jack of All File Transfers!"
+authors = ["rizemon <tan.jia.le.98@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pyftpdlib = "^1.5.6"
+impacket = "^0.9.24"
+paramiko = "^2.9.1"
+sftpserver = "^0.3"
+coloredlogs = "^15.0.1"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+pycodestyle = "^2.8.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
