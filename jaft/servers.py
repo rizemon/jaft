@@ -159,7 +159,7 @@ class SFTPService(Service):
     def start(self):
         signal.signal(signal.SIGINT, signal.SIG_IGN)
         key = RSAKey.from_private_key_file(
-            '/home/rizemon/.ssh/id_rsa'
+            './id_rsa'
         )
 
         server_socket = socket(AF_INET, SOCK_STREAM)

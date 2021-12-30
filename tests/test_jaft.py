@@ -15,6 +15,25 @@ TEST_SFTP_PORT = 2222
 TEST_NC_PORT = 4444
 
 
+class HelperFunctions:
+    @staticmethod
+    def test_connection(address, port):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(1.0)
+            try:
+                s.connect((address, port))
+            except socket.timeout:
+                return False
+            finally:
+                s.close()
+        return True
+
+
+@pytest.fixture
+def helper_functions():
+    return HelperFunctions
+
+
 @pytest.fixture(autouse=True)
 def run_before_and_after_tests():
     with TemporaryDirectory() as tmpdir:
@@ -39,38 +58,25 @@ def run_before_and_after_tests():
         jaft.stop()
 
 
-@pytest.mark.skip(reason="util")
-def test_connection(address, port):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.settimeout(1.0)
-        try:
-            s.connect((address, port))
-        except socket.timeout:
-            return False
-        finally:
-            s.close()
-    return True
-
-
 def test_version():
     assert __version__ == '0.0.1'
 
 
-def test_ftp_service_is_up():
-    assert(test_connection(TEST_ADDRESS, TEST_FTP_PORT))
+def test_ftp_service_is_up(helper_functions):
+    assert(helper_functions.test_connection(TEST_ADDRESS, TEST_FTP_PORT))
 
 
-def test_http_service_is_up():
-    assert(test_connection(TEST_ADDRESS, TEST_HTTP_PORT))
+def test_http_service_is_up(helper_functions):
+    assert(helper_functions.test_connection(TEST_ADDRESS, TEST_HTTP_PORT))
 
 
-def test_sftp_service_is_up():
-    assert(test_connection(TEST_ADDRESS, TEST_SFTP_PORT))
+def test_sftp_service_is_up(helper_functions):
+    assert(helper_functions.test_connection(TEST_ADDRESS, TEST_SFTP_PORT))
 
 
-def test_smb_service_is_up():
-    assert(test_connection(TEST_ADDRESS, TEST_SMB_PORT))
+def test_smb_service_is_up(helper_functions):
+    assert(helper_functions.test_connection(TEST_ADDRESS, TEST_SMB_PORT))
 
 
-def test_nc_service_is_up():
-    assert(test_connection(TEST_ADDRESS, TEST_NC_PORT))
+def test_nc_service_is_up(helper_functions):
+    assert(helper_functions.test_connection(TEST_ADDRESS, TEST_NC_PORT))
