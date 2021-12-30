@@ -127,3 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# For jaft testing
+id_rsa
+id_rsa.pub
