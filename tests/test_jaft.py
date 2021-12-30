@@ -1,6 +1,7 @@
 import socket
 import threading
-from tempfile import TemporaryDirectory, NamedTemporaryFile
+from os import unlink
+from tempfile import NamedTemporaryFile, TemporaryDirectory
 from time import sleep
 
 import pytest
@@ -37,9 +38,11 @@ def helper_functions():
 
 @pytest.fixture(autouse=True)
 def run_before_and_after_tests():
-    with TemporaryDirectory() as tmpdir:
+    with TemporaryDirectory() as tmpdir, \
+            NamedTemporaryFile(delete=False) as tmpfile:
+
         # Before
-        tmpfile = NamedTemporaryFile()
+        tmpfile = NamedTemporaryFile(delete=False)
         tmpkey = RSAKey.generate(4096)
         tmpkey.write_private_key_file(tmpfile.name)
 
@@ -56,11 +59,16 @@ def run_before_and_after_tests():
 
         t = threading.Thread(target=jaft.run)
         t.start()
-        sleep(3.0)
+        # Ensure all services are loaded
+        sleep(1.0)
+
         # During
         yield
+
         # After
         jaft.stop()
+        tmpfile.close()
+        unlink(tmpfile.name)
 
 
 def test_version():
