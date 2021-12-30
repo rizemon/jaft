@@ -41,10 +41,7 @@ jobs:
           use-isort: false
       
       - name: Install dependencies
-        run: |
-          poetry install
+        run: poetry install
       
       - name: Run tests
-        run: |
-          ssh-keygen -f ./id_rsa -q -N ''
-          poetry run pytest -v tests/
+        run: poetry run pytest -v tests/
