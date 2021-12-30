@@ -1,11 +1,12 @@
 import socket
 import threading
-from tempfile import TemporaryDirectory
+from tempfile import TemporaryDirectory, NamedTemporaryFile
 from time import sleep
 
 import pytest
 from jaft import __version__
 from jaft.__main__ import JAFT
+from paramiko import RSAKey
 
 TEST_ADDRESS = '127.0.0.1'
 TEST_FTP_PORT = 2121
@@ -37,9 +38,13 @@ def helper_functions():
 @pytest.fixture(autouse=True)
 def run_before_and_after_tests():
     with TemporaryDirectory() as tmpdir:
-
         # Before
+        tmpfile = NamedTemporaryFile()
+        tmpkey = RSAKey.generate(4096)
+        tmpkey.write_private_key_file(tmpfile.name)
+
         jaft = JAFT(
+            priv_key_path=tmpfile.name,
             directory=tmpdir,
             address=TEST_ADDRESS,
             ftp_port=TEST_FTP_PORT,

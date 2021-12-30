@@ -2,6 +2,27 @@
 
 With `jaft`, you can instantly share a specific directory via multiple protocols commonly used for file transfers.
 
+
+```
+usage: jaft [-h] [--http HTTP_PORT] [--sftp SFTP_PORT] [--ftp FTP_PORT] [--smb SMB_PORT] [--nc NC_PORT]
+            directory lhost privkey
+
+jaft: Jack of All File Transfers
+
+positional arguments:
+  directory         Directory to serve files from. Default: . (Current working directory)
+  lhost             IP address to serve from. Default: 0.0.0.0 (All interfaces)
+  privkey           Private key used for SFTP.
+
+optional arguments:
+  -h, --help        show this help message and exit
+  --http HTTP_PORT  Port number used for HTTP. Default: 8000
+  --sftp SFTP_PORT  Port number used for SFTP. Default: 2222
+  --ftp FTP_PORT    Port number used for FTP. Default: 2121
+  --smb SMB_PORT    Port number used for SMB. Default: 4455
+  --nc NC_PORT      Port number used for NC. Default: 4444
+```
+
 ## Protocols supported
 
 * `HTTP`
@@ -12,7 +33,7 @@ With `jaft`, you can instantly share a specific directory via multiple protocols
 
 ## Features
 
-* Shares the specified directory via the above protocols concurrently.
+* Shares the specified directory via the above supported protocols **concurrently**.
 * Supports both upload and download operations.
 * Anonymous access (Enter any username/password and you are in!)
 
@@ -21,7 +42,7 @@ With `jaft`, you can instantly share a specific directory via multiple protocols
 ### Requirements
 * Linux
 * Python3
-* Poetry (For package management)
+* Poetry (For dependency management)
 * Git (To retrieve the repo)
 
 ### Steps

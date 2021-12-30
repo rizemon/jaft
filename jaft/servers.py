@@ -32,9 +32,16 @@ pyftpdlib_logger = logging.getLogger('pyftpdlib')
 smbserver_logger = logging.getLogger('impacket.smbserver')
 httpserver_logger = logging.getLogger('http.server')
 
-for lg in [logger, pyftpdlib_logger, smbserver_logger, httpserver_logger]:
-    coloredlogs.install(
+# Only enable logging for jaft
+coloredlogs.install(
         level=logging.INFO,
+        logger=logger,
+        fmt='%(asctime)s [%(name)s:%(filename)s:%(lineno)d] \
+%(levelname)s %(message)s'
+)
+for lg in [pyftpdlib_logger, smbserver_logger, httpserver_logger]:
+    coloredlogs.install(
+        level=logging.WARNING,
         logger=lg,
         fmt='%(asctime)s [%(name)s:%(filename)s:%(lineno)d] \
 %(levelname)s %(message)s'
@@ -43,10 +50,11 @@ for lg in [logger, pyftpdlib_logger, smbserver_logger, httpserver_logger]:
 
 class Service(ABC):
 
-    def __init__(self, address, port, directory):
+    def __init__(self, address, port, directory, priv_key_path=""):
         self.address = address
         self.port = port
         self.directory = directory
+        self.priv_key_path = priv_key_path
 
     @abstractmethod
     def start(self):
@@ -159,7 +167,7 @@ class SFTPService(Service):
     def start(self):
         signal.signal(signal.SIGINT, signal.SIG_IGN)
         key = RSAKey.from_private_key_file(
-            './id_rsa'
+            self.priv_key_path
         )
 
         server_socket = socket(AF_INET, SOCK_STREAM)
