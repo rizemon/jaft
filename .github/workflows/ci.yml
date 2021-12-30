@@ -7,7 +7,7 @@ jobs:
       matrix:
         python-version: [3.9]
         poetry-version: [1.1.12]
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
 
     runs-on: ${{ matrix.os }}
 
@@ -26,7 +26,6 @@ jobs:
           poetry-version: ${{ matrix.poetry-version }}
 
       - name: Check codestyle
-        if: matrix.os == 'ubuntu-latest'
         uses: ricardochaves/python-lint@v1.4.0
         with:
           python-root-list: "jaft tests"
@@ -41,14 +40,7 @@ jobs:
         run: |
           poetry install
       
-      - name: Generate fake SSH keys for tests (For Bash)
-        if: matrix.os == 'ubuntu-latest'
-        run: ssh-keygen -f ./id_rsa -q -N ''
-      
-      - name: Generate fake SSH keys for tests(For Powershell)
-        if: matrix.os == 'windows-latest'
-        run: ssh-keygen -f ./id_rsa -q -N '""'
-
       - name: Run tests
-        run: poetry run pytest -v tests/
-
+        run: |
+          ssh-keygen -f ./id_rsa -q -N ''
+          poetry run pytest -v tests/
