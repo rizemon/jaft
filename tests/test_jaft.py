@@ -56,7 +56,7 @@ def run_before_and_after_tests():
 
         t = threading.Thread(target=jaft.run)
         t.start()
-        sleep(0.1)
+        sleep(3.0)
         # During
         yield
         # After
