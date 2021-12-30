@@ -44,7 +44,7 @@ $ ssh-keygen -f ./id_rsa -q -N ''
 
 4. Start `jaft`:
 ```bash
-$ poetry run 
+$ poetry run jaft . 0.0.0.0
 ```
 
 ## Testing
@@ -59,7 +59,7 @@ $ git clone https://github.com/rizemon/jaft
 2. Install the required dependencies:
 ```bash
 $ cd jaft
-$ poetry install
+$ poetry install --no-dev
 ```
 
 3. Generate an SSH Key pair:
