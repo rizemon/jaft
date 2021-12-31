@@ -48,13 +48,6 @@ for lg in [pyftpdlib_logger, smbserver_logger, httpserver_logger]:
     )
 
 
-def ignore_keyboard_interrupt(func):
-    def _wrapper(*args):
-        signal.signal(signal.SIGINT, signal.SIG_IGN)
-        func(*args)
-    return _wrapper
-
-
 class Service(ABC):
 
     def __init__(self, address, port, directory, priv_key_path=''):
@@ -67,10 +60,17 @@ class Service(ABC):
     def start(self):
         return NotImplemented
 
+    @staticmethod
+    def ignore_keyboard_interrupt(func):
+        def _wrapper(*args):
+            signal.signal(signal.SIGINT, signal.SIG_IGN)
+            func(*args)
+        return _wrapper
+
 
 class FTPService(Service):
 
-    @ignore_keyboard_interrupt
+    @Service.ignore_keyboard_interrupt
     def start(self):
         handler = FTPHandler
         handler.authorizer = self._AnyAuthorizer(directory=self.directory)
@@ -111,7 +111,7 @@ class FTPService(Service):
 
 class HTTPService(Service):
 
-    @ignore_keyboard_interrupt
+    @Service.ignore_keyboard_interrupt
     def start(self):
         TCPServer.allow_reuse_address = True
 
@@ -161,7 +161,7 @@ class SMBService(Service):
 
     SHARE_NAME = 'jaft'
 
-    @ignore_keyboard_interrupt
+    @Service.ignore_keyboard_interrupt
     def start(self):
         smbd = SimpleSMBServer(
             listenAddress=self.address,
@@ -178,7 +178,7 @@ class SFTPService(Service):
 
     MAX_CONNECTIONS = 10
 
-    @ignore_keyboard_interrupt
+    @Service.ignore_keyboard_interrupt
     def start(self):
         try:
             key = RSAKey.from_private_key_file(
@@ -231,7 +231,7 @@ class NCService(Service):
     MAX_BUFFER_SIZE = 1024
     MAX_CONNECTIONS = 10
 
-    @ignore_keyboard_interrupt
+    @Service.ignore_keyboard_interrupt
     def start(self):
         server_socket = socket(AF_INET, SOCK_STREAM)
         server_socket.bind((self.address, self.port))

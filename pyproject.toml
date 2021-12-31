@@ -11,6 +11,7 @@ impacket = "^0.9.24"
 paramiko = "^2.9.1"
 sftpserver = "^0.3"
 coloredlogs = "^15.0.1"
+multiprocess = "^0.70.12"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

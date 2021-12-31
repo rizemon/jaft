@@ -1,5 +1,5 @@
 from argparse import ArgumentParser
-from multiprocessing import Process
+from multiprocess import Process
 
 from jaft.servers import (FTPService, HTTPService, NCService, SFTPService,
                           SMBService)
