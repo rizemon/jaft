@@ -60,14 +60,9 @@ $ cd jaft
 $ poetry install
 ```
 
-3. Generate an unencrypted SSH Key pair using `ssh-keygen`:
+3. Start `jaft`:
 ```bash
-$ ssh-keygen -f ./id_rsa -q -N ''
-```
-
-4. Start `jaft`:
-```bash
-$ poetry run jaft . 0.0.0.0 ./id_rsa
+$ poetry run jaft 
 ```
 
 ## Testing
@@ -85,12 +80,7 @@ $ cd jaft
 $ poetry install --no-dev
 ```
 
-3. Generate an SSH Key pair:
-```bash
-$ ssh-keygen -f ./id_rsa -q -N ''
-```
-
-4. Execute tests:
+3. Execute tests:
 ```bash
 $ poetry run pytest 
 ```
