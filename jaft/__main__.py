@@ -17,7 +17,7 @@ class JAFT:
 
     def __init__(
         self,
-        priv_key_path,
+        priv_key_path='',
         address=DEFAULT_ADDRESS,
         directory=DEFAULT_DIRECTORY,
         ftp_port=DEFAULT_PORT_FTP,
@@ -80,26 +80,33 @@ def main():
     )
 
     parser.add_argument(
-        'directory',
+        '-d',
+        '--dir',
         action='store',
         type=str,
         default=DEFAULT_DIRECTORY,
+        nargs='?',
         help='Directory to serve files \
 from. Default: %(default)s (Current working directory)'
     )
 
     parser.add_argument(
-        'lhost',
+        '-l',
+        '--lhost',
         action='store',
         type=str,
+        nargs='?',
         default='0.0.0.0',
         help='IP address to serve from. Default: %(default)s (All interfaces)'
     )
 
     parser.add_argument(
-        'privkey',
+        '-k',
+        '--key',
         action='store',
         type=str,
+        nargs='?',
+        default='',
         help='Private key used for SFTP.'
     )
 
@@ -150,8 +157,8 @@ used for NC. Default: %(default)s'
         return
 
     jaft = JAFT(
-        priv_key_path=args.privkey,
-        directory=args.directory,
+        priv_key_path=args.key,
+        directory=args.dir,
         address=args.lhost,
         ftp_port=args.ftp,
         http_port=args.http,

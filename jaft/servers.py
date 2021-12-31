@@ -32,7 +32,7 @@ pyftpdlib_logger = logging.getLogger('pyftpdlib')
 smbserver_logger = logging.getLogger('impacket.smbserver')
 httpserver_logger = logging.getLogger('http.server')
 
-# Only enable logging for jaft
+# Only enable INFO logging for jaft
 coloredlogs.install(
         level=logging.INFO,
         logger=logger,
@@ -50,7 +50,7 @@ for lg in [pyftpdlib_logger, smbserver_logger, httpserver_logger]:
 
 class Service(ABC):
 
-    def __init__(self, address, port, directory, priv_key_path=""):
+    def __init__(self, address, port, directory, priv_key_path=''):
         self.address = address
         self.port = port
         self.directory = directory
@@ -60,14 +60,22 @@ class Service(ABC):
     def start(self):
         return NotImplemented
 
+    @staticmethod
+    def ignore_keyboard_interrupt(func):
+        def wrapper(*args):
+            signal.signal(signal.SIGINT, signal.SIG_IGN)
+            func(*args)
+        return wrapper
+
 
 class FTPService(Service):
 
+    @Service.ignore_keyboard_interrupt
     def start(self):
-        signal.signal(signal.SIGINT, signal.SIG_IGN)
         handler = FTPHandler
         handler.authorizer = self._AnyAuthorizer(directory=self.directory)
         ftpd = self._FTPServerWrapper((self.address, self.port), handler)
+
         logger.info(f'Started FTP Service on {self.address}:{self.port}')
         ftpd.serve_forever()
 
@@ -103,9 +111,10 @@ class FTPService(Service):
 
 class HTTPService(Service):
 
+    @Service.ignore_keyboard_interrupt
     def start(self):
         TCPServer.allow_reuse_address = True
-        signal.signal(signal.SIGINT, signal.SIG_IGN)
+
         with TCPServer(
             (self.address, self.port),
             self._HTTPServerWrapper,
@@ -139,45 +148,53 @@ class HTTPService(Service):
             self.send_response(201, 'Created')
 
         def log_message(self, *args, **kwargs):
-            if (len(args) == 4):
-                client_ip = self.client_address[0]
-                request_line = args[1]
-                status_code = args[2]
-                httpserver_logger.info(f'{client_ip} "{request_line}" \
+            if (len(args) != 4):
+                return
+            client_ip = self.client_address[0]
+            request_line = args[1]
+            status_code = args[2]
+            httpserver_logger.info(f'{client_ip} "{request_line}" \
 {status_code}')
 
 
 class SMBService(Service):
 
+    SHARE_NAME = 'jaft'
+
+    @Service.ignore_keyboard_interrupt
     def start(self):
-        signal.signal(signal.SIGINT, signal.SIG_IGN)
         smbd = SimpleSMBServer(
             listenAddress=self.address,
             listenPort=self.port
         )
-
-        smbd.addShare('jaft', self.directory)
+        smbd.addShare(self.SHARE_NAME, self.directory)
         smbd.setSMB2Support(True)
+
         logger.info(f'Started SMB Service on {self.address}:{self.port}')
         smbd.start()
 
 
 class SFTPService(Service):
 
+    MAX_CONNECTIONS = 10
+
+    @Service.ignore_keyboard_interrupt
     def start(self):
-        signal.signal(signal.SIGINT, signal.SIG_IGN)
-        key = RSAKey.from_private_key_file(
-            self.priv_key_path
-        )
+        try:
+            key = RSAKey.from_private_key_file(
+                self.priv_key_path
+            )
+        except FileNotFoundError:
+            key = RSAKey.generate(4096)
 
         server_socket = socket(AF_INET, SOCK_STREAM)
         server_socket.bind((self.address, self.port))
-        server_socket.listen(10)
+        server_socket.listen(self.MAX_CONNECTIONS)
 
         logger.info(f'Started SFTP Service on {self.address}:{self.port}')
 
         while True:
-            conn, addr = server_socket.accept()
+            conn, _ = server_socket.accept()
             client_thread = self._SFTPConnection(conn, key)
             client_thread.setDaemon(True)
             client_thread.start()
@@ -199,25 +216,31 @@ class SFTPService(Service):
                 StubSFTPServer
             )
             transport.start_server(server=StubServer())
-            channel = transport.accept()
-            while transport.is_active():
-                sleep(1)
 
-            transport.close()
+            with transport.accept() as _:
+                while transport.is_active():
+                    sleep(1)
+                transport.close()
+
             self.conn.close()
 
 
 class NCService(Service):
+
+    CONNECTION_TIMEOUT = 5.0
+    MAX_BUFFER_SIZE = 1024
+    MAX_CONNECTIONS = 10
+
+    @Service.ignore_keyboard_interrupt
     def start(self):
-        signal.signal(signal.SIGINT, signal.SIG_IGN)
         server_socket = socket(AF_INET, SOCK_STREAM)
         server_socket.bind((self.address, self.port))
-        server_socket.listen(10)
+        server_socket.listen(self.MAX_CONNECTIONS)
 
         logger.info(f'Started NC Service on {self.address}:{self.port}')
 
         while True:
-            conn, addr = server_socket.accept()
+            conn, _ = server_socket.accept()
             client_thread = self._NetCatConnection(conn, self.directory)
             client_thread.setDaemon(True)
             client_thread.start()
@@ -234,9 +257,9 @@ class NCService(Service):
 
             with open(file_path, 'wb') as f:
                 while True:
-                    self.conn.settimeout(5.0)
+                    self.conn.settimeout(self.CONNECTION_TIMEOUT)
                     try:
-                        data = self.conn.recv(1024)
+                        data = self.conn.recv(self.MAX_BUFFER_SIZE)
                     except socket.timeout:
                         break
                     if len(data) == 0:
