@@ -60,11 +60,6 @@ $ cd jaft
 $ poetry install
 ```
 
-3. Start `jaft`:
-```bash
-$ poetry run jaft 
-```
-
 ## Testing
 
 ### Steps (Using `poetry`)
@@ -103,3 +98,14 @@ $ act
 When I was preparing myself for the OSCP (Offensive Security Certified Professional Exam), transferring files from my host machine to a target was a chore to me. My go-to would always be to start a HTTP server using `http.server` or [`updog`](https://github.com/sc0tfree/updog) that will serve the contents of a given directory of attacker tools and then use `curl` (For Linux) or `certutil` (For Windows) from the target machine to retrieve them. However, this might not always go so well as the target might not have these programs installed (e.g Docker containers) or perhaps not even allow for outbound HTTP connections (e.g Firewall rules). 
 
 Therefore, I created `jaft` that is able to readily share my directory of attacker tools on protocols that I normally use for file transfers so that I would not have to repetitively startup and manage various file services.
+
+## To do
+* [ ] Implement tests for each supported protocol
+  * [ ] HTTPService
+  * [ ] SMBService
+  * [ ] NCService
+  * [ ] FTPService
+  * [ ] SFTPSErvice
+* [ ] Add support for username + password and add command-line options for them
+* [ ] Add support for SSL for HTTP, FTP, NC
+* [ ] Release project as a package on PyPi
