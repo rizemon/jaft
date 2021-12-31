@@ -51,7 +51,7 @@ def run_before_and_after_tests():
         t = threading.Thread(target=jaft.run)
         t.start()
         # Ensure all services are loaded
-        sleep(1.0)
+        sleep(3.0)
 
         # During
         yield
