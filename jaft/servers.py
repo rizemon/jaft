@@ -1,13 +1,13 @@
 import logging
+import signal
 from abc import ABC, abstractmethod
+from functools import partial
 from http.server import SimpleHTTPRequestHandler
-from os.path import isdir, join, dirname
-from socket import AF_INET, SOCK_STREAM, socket
+from os.path import dirname, isdir, join
+from socket import AF_INET, SOCK_STREAM, socket, timeout as stimeout
 from socketserver import TCPServer
 from threading import Thread
 from time import sleep
-from uuid import uuid4
-import signal
 
 import coloredlogs
 from impacket.smbserver import SimpleSMBServer
@@ -24,7 +24,6 @@ Classes:
 -> FTPService
 -> SMBService
 -> SFTPService
--> NCService
 """
 
 logger = logging.getLogger('jaft')
@@ -115,10 +114,11 @@ class HTTPService(Service):
     def start(self):
         TCPServer.allow_reuse_address = True
 
+        wrapper = partial(self._HTTPServerWrapper, directory=self.directory)
+
         with TCPServer(
             (self.address, self.port),
-            self._HTTPServerWrapper,
-            self.directory
+            wrapper,
         ) as httpd:
             logger.info(f'Started HTTP Service on {self.address}:{self.port}')
             try:
@@ -133,10 +133,12 @@ class HTTPService(Service):
 
             if full_path.endswith('/') or isdir(full_path):
                 self.send_response(405, 'Method Not Allowed')
+                self.end_headers()
                 return
 
             if not isdir(dirname(full_path)):
                 self.send_response(404, 'Not Found')
+                self.end_headers()
                 return
 
             size = int(self.headers['Content-Length'])
@@ -146,6 +148,7 @@ class HTTPService(Service):
                 f.write(bytes_from_file)
 
             self.send_response(201, 'Created')
+            self.end_headers()
 
         def log_message(self, *args, **kwargs):
             if (len(args) != 4):
@@ -195,21 +198,24 @@ class SFTPService(Service):
 
         while True:
             conn, _ = server_socket.accept()
-            client_thread = self._SFTPConnection(conn, key)
+            client_thread = self._SFTPConnection(conn, key, self.directory)
             client_thread.setDaemon(True)
             client_thread.start()
 
     # Referenced from
     # https://gist.github.com/Girgitt/2df036f9e26dba1baaddf4c5845a20a2
     class _SFTPConnection(Thread):
-        def __init__(self, conn, key):
+        def __init__(self, conn, key, directory):
             self.conn = conn
             self.key = key
+            self.directory = directory
             super().__init__()
 
         def run(self):
             transport = Transport(self.conn)
             transport.add_server_key(self.key)
+            StubSFTPServer.ROOT = self.directory
+
             transport.set_subsystem_handler(
                 'sftp',
                 SFTPServer,
@@ -221,49 +227,5 @@ class SFTPService(Service):
                 while transport.is_active():
                     sleep(1)
                 transport.close()
-
-            self.conn.close()
-
-
-class NCService(Service):
-
-    CONNECTION_TIMEOUT = 5.0
-    MAX_BUFFER_SIZE = 1024
-    MAX_CONNECTIONS = 10
-
-    @Service.ignore_keyboard_interrupt
-    def start(self):
-        server_socket = socket(AF_INET, SOCK_STREAM)
-        server_socket.bind((self.address, self.port))
-        server_socket.listen(self.MAX_CONNECTIONS)
-
-        logger.info(f'Started NC Service on {self.address}:{self.port}')
-
-        while True:
-            conn, _ = server_socket.accept()
-            client_thread = self._NetCatConnection(conn, self.directory)
-            client_thread.setDaemon(True)
-            client_thread.start()
-
-    class _NetCatConnection(Thread):
-        def __init__(self, conn, directory):
-            self.conn = conn
-            self.directory = directory
-            super().__init__()
-
-        def run(self):
-            random_file_name = str(uuid4())
-            file_path = join(self.directory, random_file_name)
-
-            with open(file_path, 'wb') as f:
-                while True:
-                    self.conn.settimeout(self.CONNECTION_TIMEOUT)
-                    try:
-                        data = self.conn.recv(self.MAX_BUFFER_SIZE)
-                    except socket.timeout:
-                        break
-                    if len(data) == 0:
-                        break
-                    f.write(data)
 
             self.conn.close()

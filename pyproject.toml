@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "jaft"
-version = "0.0.1"
+version = "0.0.2"
 description = "Jack of All File Transfers!"
 authors = ["rizemon <tan.jia.le.98@gmail.com>"]
 
@@ -12,6 +12,8 @@ paramiko = "^2.9.1"
 sftpserver = "^0.3"
 coloredlogs = "^15.0.1"
 multiprocess = "^0.70.12"
+requests = "^2.27.1"
+pysmb = "^1.2.7"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

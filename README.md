@@ -4,16 +4,14 @@ With `jaft`, you can instantly share a specific directory via multiple protocols
 
 
 ```
-usage: jaft [-h] [-d [DIR]] [-l [LHOST]] [-k [KEY]] [--http HTTP_PORT]
-            [--sftp SFTP_PORT] [--ftp FTP_PORT] [--smb SMB_PORT] [--nc NC_PORT]
+usage: jaft [-h] [-d [DIR]] [-l [LHOST]] [-k [KEY]] [--http HTTP_PORT] [--sftp SFTP_PORT] [--ftp FTP_PORT] [--smb SMB_PORT]
 
 jaft: Jack of All File Transfers
 
 optional arguments:
   -h, --help            show this help message and exit
   -d [DIR], --dir [DIR]
-                        Directory to serve files from. Default: . (Current working
-                        directory)
+                        Directory to serve files from. Default: . (Current working directory)
   -l [LHOST], --lhost [LHOST]
                         IP address to serve from. Default: 0.0.0.0 (All interfaces)
   -k [KEY], --key [KEY]
@@ -22,7 +20,6 @@ optional arguments:
   --sftp SFTP_PORT      Port number used for SFTP. Default: 2222
   --ftp FTP_PORT        Port number used for FTP. Default: 2121
   --smb SMB_PORT        Port number used for SMB. Default: 4455
-  --nc NC_PORT          Port number used for NC. Default: 4444
 ```
 
 ## Protocols supported
@@ -31,7 +28,6 @@ optional arguments:
 * `FTP`
 * `SFTP`
 * `SMB`
-* `NC` (Netcat)
 
 ## Features
 
@@ -45,7 +41,6 @@ optional arguments:
 * Linux
 * Python3
 * Poetry (For dependency management)
-* Git (To retrieve the repo)
 
 ### Steps
 
@@ -100,12 +95,6 @@ When I was preparing myself for the OSCP (Offensive Security Certified Professio
 Therefore, I created `jaft` that is able to readily share my directory of attacker tools on protocols that I normally use for file transfers so that I would not have to repetitively startup and manage various file services.
 
 ## To do
-* [ ] Implement tests for each supported protocol
-  * [ ] HTTPService
-  * [ ] SMBService
-  * [ ] NCService
-  * [ ] FTPService
-  * [ ] SFTPSErvice
 * [ ] Add support for username + password and add command-line options for them
-* [ ] Add support for SSL for HTTP, FTP, NC
+* [ ] Add support for SSL for HTTP, FTP
 * [ ] Release project as a package on PyPi

@@ -1,15 +1,13 @@
 from argparse import ArgumentParser
 from multiprocess import Process
 
-from jaft.servers import (FTPService, HTTPService, NCService, SFTPService,
-                          SMBService)
+from jaft.servers import FTPService, HTTPService, SFTPService, SMBService
 
 DEFAULT_ADDRESS = '0.0.0.0'
 DEFAULT_PORT_FTP = 2121
 DEFAULT_PORT_SFTP = 2222
 DEFAULT_PORT_SMB = 4455
 DEFAULT_PORT_HTTP = 8000
-DEFAULT_PORT_NC = 4444
 DEFAULT_DIRECTORY = '.'
 
 
@@ -23,8 +21,7 @@ class JAFT:
         ftp_port=DEFAULT_PORT_FTP,
         sftp_port=DEFAULT_PORT_SFTP,
         smb_port=DEFAULT_PORT_SMB,
-        http_port=DEFAULT_PORT_HTTP,
-        nc_port=DEFAULT_PORT_NC
+        http_port=DEFAULT_PORT_HTTP
     ):
         ftp = FTPService(
             address,
@@ -47,18 +44,12 @@ class JAFT:
             directory,
             priv_key_path
         )
-        nc = NCService(
-            address,
-            nc_port,
-            directory
-        )
 
         self.processes = [
             Process(target=ftp.start),
             Process(target=http.start),
             Process(target=smb.start),
-            Process(target=sftp.start),
-            Process(target=nc.start)
+            Process(target=sftp.start)
         ]
 
     def run(self):
@@ -142,14 +133,6 @@ used for FTP. Default: %(default)s'
 used for SMB. Default: %(default)s'
     )
 
-    parser.add_argument(
-        '--nc',
-        action='store',
-        type=int,
-        default=DEFAULT_PORT_NC, metavar='NC_PORT', help='Port number \
-used for NC. Default: %(default)s'
-    )
-
     args = parser.parse_args()
 
     if not args:
@@ -163,9 +146,9 @@ used for NC. Default: %(default)s'
         ftp_port=args.ftp,
         http_port=args.http,
         smb_port=args.smb,
-        sftp_port=args.sftp,
-        nc_port=args.nc
+        sftp_port=args.sftp
     )
+
     try:
         jaft.run()
     except KeyboardInterrupt:

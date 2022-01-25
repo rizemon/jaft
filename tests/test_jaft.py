@@ -1,84 +1,26 @@
-import socket
-import threading
-from tempfile import TemporaryDirectory
-from time import sleep
-
-import pytest
 from jaft import __version__
-from jaft.__main__ import JAFT
 
-TEST_ADDRESS = '127.0.0.1'
-TEST_FTP_PORT = 2121
-TEST_HTTP_PORT = 8080
-TEST_SMB_PORT = 4455
-TEST_SFTP_PORT = 2222
-TEST_NC_PORT = 4444
+from .util import *
 
-
-class HelperFunctions:
-    @staticmethod
-    def test_connection(address, port):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.settimeout(1.0)
-            try:
-                s.connect((address, port))
-            except socket.timeout:
-                return False
-            finally:
-                s.close()
-        return True
-
-
-@pytest.fixture
-def helper_functions():
-    return HelperFunctions
-
-
-@pytest.fixture(autouse=True)
-def run_before_and_after_tests():
-    with TemporaryDirectory() as tmpdir:
-        # Before
-        jaft = JAFT(
-            directory=tmpdir,
-            address=TEST_ADDRESS,
-            ftp_port=TEST_FTP_PORT,
-            http_port=TEST_HTTP_PORT,
-            smb_port=TEST_SMB_PORT,
-            sftp_port=TEST_SFTP_PORT,
-            nc_port=TEST_NC_PORT
-        )
-
-        t = threading.Thread(target=jaft.run)
-        t.start()
-        # Ensure all services are loaded
-        sleep(3.0)
-
-        # During
-        yield
-
-        # After
-        jaft.stop()
+from jaft.__main__ import DEFAULT_PORT_SMB, DEFAULT_PORT_SFTP, \
+    DEFAULT_PORT_FTP, DEFAULT_PORT_HTTP
 
 
 def test_version():
-    assert __version__ == '0.0.1'
+    assert __version__ == '0.0.2'
 
 
 def test_ftp_service_is_up(helper_functions):
-    assert(helper_functions.test_connection(TEST_ADDRESS, TEST_FTP_PORT))
+    assert(helper_functions.test_connection(TEST_ADDRESS, DEFAULT_PORT_FTP))
 
 
 def test_http_service_is_up(helper_functions):
-    assert(helper_functions.test_connection(TEST_ADDRESS, TEST_HTTP_PORT))
+    assert(helper_functions.test_connection(TEST_ADDRESS, DEFAULT_PORT_HTTP))
 
 
 def test_sftp_service_is_up(helper_functions):
-    assert(helper_functions.test_connection(TEST_ADDRESS, TEST_SFTP_PORT))
+    assert(helper_functions.test_connection(TEST_ADDRESS, DEFAULT_PORT_SFTP))
 
 
 def test_smb_service_is_up(helper_functions):
-    assert(helper_functions.test_connection(TEST_ADDRESS, TEST_SMB_PORT))
-
-
-def test_nc_service_is_up(helper_functions):
-    assert(helper_functions.test_connection(TEST_ADDRESS, TEST_NC_PORT))
+    assert(helper_functions.test_connection(TEST_ADDRESS, DEFAULT_PORT_SMB))
